@@ -64,18 +64,23 @@ def ensure_dependencies():
     else:
         print("[setup] torch        already installed")
 
-    # Replace opencv-python with headless variant to avoid libGL.so.1 dependency
-    if _installed("cv2"):
-        import cv2  # noqa: PLC0415
-        if "headless" not in (cv2.__file__ or ""):
-            print("[setup] Replacing opencv-python with headless variant ...")
-            _run_pip("uninstall", "-y", "opencv-python")
-            _run_pip("install", "-q", "opencv-python-headless")
-        else:
-            print("[setup] opencv-python-headless       already installed")
-    else:
+    # Always ensure headless opencv is installed (avoids libGL.so.1 on headless servers)
+    installed_pkgs = subprocess.check_output(
+        [sys.executable, "-m", "pip", "list", "--format=columns"],
+        text=True,
+    ).lower()
+    has_headless = "opencv-python-headless" in installed_pkgs
+    has_full     = "opencv-python " in installed_pkgs  # trailing space excludes headless
+
+    if has_full:
+        print("[setup] Replacing opencv-python with headless variant ...")
+        _run_pip("uninstall", "-y", "opencv-python")
+        _run_pip("install", "-q", "opencv-python-headless")
+    elif not has_headless:
         print("[setup] Installing opencv-python-headless ...")
         _run_pip("install", "-q", "opencv-python-headless")
+    else:
+        print("[setup] opencv-python-headless       already installed")
 
     for pkg, module in [
         ("ultralytics",  "ultralytics"),
