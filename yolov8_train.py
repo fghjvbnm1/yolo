@@ -119,6 +119,7 @@ def get_data_yaml(args, dest: Path) -> str:
         "openimages": "open-images-v7.yaml", # 1.7M images — very heavy
     }
     if args.dataset not in dataset_map:
+        
         raise ValueError(
             f"Unknown dataset '{args.dataset}'. "
             f"Choose from: {list(dataset_map.keys())} or use --roboflow / --data."
@@ -136,9 +137,9 @@ def main():
     parser = argparse.ArgumentParser(description="YOLOv8 dataset download + train")
 
     ds_group = parser.add_mutually_exclusive_group()
-    ds_group.add_argument("--dataset", default="coco",
+    ds_group.add_argument("--dataset", default="voc",
                           choices=["coco128", "coco", "voc", "objects365", "openimages"],
-                          help="Built-in ultralytics dataset (default: coco)")
+                          help="Built-in ultralytics dataset (default: voc)")
     ds_group.add_argument("--roboflow", metavar="URL",
                           help="Roboflow dataset export URL (zip)")
     ds_group.add_argument("--data", metavar="PATH",
@@ -156,13 +157,11 @@ def main():
         "yolo11n.pt", "yolo11s.pt", "yolo11m.pt", "yolo11l.pt", "yolo11x.pt",
     ]
     # fmt: on
-    parser.add_argument("--model",   default="yolov8x.pt", choices=MODELS,
-                        help="Model weight file (default: yolov8x — largest v8)")
-    parser.add_argument("--epochs",  type=int, default=100)
-    parser.add_argument("--imgsz",   type=int, default=1280,
-                        help="Input image size (default: 1280 for high-res training)")
-    parser.add_argument("--batch",   type=int, default=8,
-                        help="Batch size (default: 8, lower for large models/imgsz)")
+    parser.add_argument("--model",   default="yolov8n.pt", choices=MODELS,
+                        help="Model weight file (default: yolov8n)")
+    parser.add_argument("--epochs",  type=int, default=500)
+    parser.add_argument("--imgsz",   type=int, default=640)
+    parser.add_argument("--batch",   type=int, default=32)
     parser.add_argument("--device",  default="0", help="GPU id or 'cpu'")
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--project", default="runs/train")
