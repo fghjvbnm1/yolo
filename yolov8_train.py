@@ -56,8 +56,26 @@ def _install_torch():
              "--index-url", index)
 
 
+def _ensure_libgl():
+    """Install libGL.so.1 via apt if missing (needed by opencv on headless servers)."""
+    import ctypes.util
+    if ctypes.util.find_library("GL"):
+        return
+    print("[setup] libGL.so.1 not found — installing via apt ...")
+    try:
+        subprocess.check_call(
+            ["apt-get", "install", "-y", "-q", "libgl1", "libglib2.0-0"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        print("[setup] libgl1 installed")
+    except Exception:
+        print("[setup] apt-get failed. Try manually: apt-get install -y libgl1")
+
+
 def ensure_dependencies():
     print("[setup] Checking dependencies ...")
+
+    _ensure_libgl()
 
     if not _installed("torch"):
         _install_torch()
