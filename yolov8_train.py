@@ -82,20 +82,20 @@ def ensure_dependencies():
     else:
         print("[setup] torch        already installed")
 
-    # Always ensure headless opencv is installed (avoids libGL.so.1 on headless servers)
-    installed_pkgs = subprocess.check_output(
-        [sys.executable, "-m", "pip", "list", "--format=columns"],
-        text=True,
-    ).lower()
-    has_headless = "opencv-python-headless" in installed_pkgs
-    has_full     = "opencv-python " in installed_pkgs  # trailing space excludes headless
+    # Ensure cv2 is importable; always use headless variant to avoid libGL dependency
+    cv2_ok = subprocess.run(
+        [sys.executable, "-c", "import cv2"],
+        capture_output=True,
+    ).returncode == 0
 
-    if has_full:
-        print("[setup] Replacing opencv-python with headless variant ...")
-        _run_pip("uninstall", "-y", "opencv-python")
-        _run_pip("install", "-q", "opencv-python-headless")
-    elif not has_headless:
+    if not cv2_ok:
         print("[setup] Installing opencv-python-headless ...")
+        # Remove any broken opencv variant first
+        subprocess.run(
+            [sys.executable, "-m", "pip", "uninstall", "-y",
+             "opencv-python", "opencv-python-headless"],
+            capture_output=True,
+        )
         _run_pip("install", "-q", "opencv-python-headless")
     else:
         print("[setup] opencv-python-headless       already installed")
